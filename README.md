@@ -7,3 +7,5 @@ query_gen2.py is the second hand improvements from query_gen.py, however it was 
 test1.py and Test2.py are the more improved versions, where Test2.py is the latest version, and working as per new implementations. There are still a few changes required that need to be pulled in these versions.
 test1.py file is almost the final version of the query generator. 
 Uploaded all my CSV result files. There are 12 different query result .csv files and one .csv file which does all the time statistics calculations. 
+I have renamed 'test1.py' to 'Random_Uniform.py', and 'Test2.py' to 'Random_Zipf.py'.
+'Random_Zipf.py' introduces Zipf Distribution to generate random distribution results to be used as min and max range of constraints for my queries.
