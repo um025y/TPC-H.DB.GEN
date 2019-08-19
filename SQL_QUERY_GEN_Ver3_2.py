@@ -4,6 +4,26 @@ import numpy as np
 import csv
 
 """
+    Genrate random values from zipf for a given
+    Minimum and Maximum values using zipf distribution
+"""
+
+def random_zipf(a: np.float64, min: np.uint64, max: np.uint64, size=None):
+    """
+    Generate Zipf-like random variables,
+    but in inclusive [min...max] interval
+    """
+    if min == 0:
+        raise ZeroDivisionError("")
+
+    v   = np.arange(min, max+1) # values to sample
+    p   = 1.0 / np.power(v, a)  # probabilities
+    p   /= np.sum(p)            # normalized
+
+    return np.random.choice(v, size=size, replace=True, p=p)
+
+
+"""
     Generate price or total price range for a given
     Minimum and Maximum price values using, uniform distribution
 """
@@ -17,8 +37,8 @@ def generate_minmax_range(minVal, maxVal, cnt=5, pr=0, dist='uniform'):
             val_2 = np.random.uniform(val_1, maxVal)
         else:
             a = 1.01
-            val_1 = np.random.zipf(a)
-            val_2 = np.random.zipf(a)
+            val_1 = random_zipf(a, minVal, maxVal)
+            val_2 = random_zipf(a, val_1, maxVal)
 
         if pr > 0:
             price_1 = round(val_1, pr)
@@ -27,12 +47,10 @@ def generate_minmax_range(minVal, maxVal, cnt=5, pr=0, dist='uniform'):
             price_1 = round(val_1)
             price_2 = round(val_2)
 
-        if price_1 < price_2:
-            min_values.append(str(price_1))
-            max_values.append(str(price_2))
-        else:
-            min_values.append(str(price_2))
-            max_values.append(str(price_1))
+
+        min_values.append(str(price_1))
+        max_values.append(str(price_2))
+
 
     return {"min_values": min_values, "max_values": max_values}
 
@@ -71,24 +89,25 @@ def get_query_string(case, idx):
 
 def get_CSV_line(case, idx, size, exe_time):
     switcher = {
-        0: ['lineitem_table', 'L_EXTENDEDPRICE', 'SELECTION QUERY', min_ext_range_price[idx], max_ext_range_price[idx], size,
-            np.min(exe_time[:]), np.max(exe_time[:]), np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        1: ['lineitem_table', 'L_EXTENDEDPRICE', 'JOIN QUERY', min_ext_range_price[idx], max_ext_range_price[idx], size,
-            np.min(exe_time[:]), np.max(exe_time[:]), np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        2: ['order_table', 'O_TOTALPRICE', 'SELECTION QUERY', min_total_price[idx], max_total_price[idx], size, np.mean(exe_time[:]),
-            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        3: ['order_table', 'O_TOTALPRICE', 'JOIN QUERY', min_total_price[idx], max_total_price[idx], size, np.min(exe_time[:]), np.max(exe_time[:]),
-            np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        4: ['lineitem_table', 'L_ORDERKEY', 'SELECTION QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size,
-            np.min(exe_time[:]), np.max(exe_time[:]), np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        5: ['lineitem_table', 'L_ORDERKEY', 'JOIN QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size,
-            np.min(exe_time[:]), np.max(exe_time[:]), np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        6: ['order_table', 'O_ORDERKEY', 'JOIN QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size, np.min(exe_time[:]), np.max(exe_time[:]),
-            np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])],
-        7: ['order_table', 'O_ORDERKEY', 'SELECTION QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size, np.min(exe_time[:]),
-            np.max(exe_time[:]), np.mean(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:])]
+        0: ['Model_1', 'lineitem_table', 'L_EXTENDEDPRICE', 'SELECTION QUERY', min_ext_range_price[idx], max_ext_range_price[idx], size,
+            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        1: ['Model_2','lineitem_table', 'L_EXTENDEDPRICE', 'JOIN QUERY', min_ext_range_price[idx], max_ext_range_price[idx], size,
+            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        2: ['Model_3','order_table', 'O_TOTALPRICE', 'SELECTION QUERY', min_total_price[idx], max_total_price[idx], size,
+            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        3: ['Model_4','order_table', 'O_TOTALPRICE', 'JOIN QUERY', min_total_price[idx], max_total_price[idx], size, np.min(exe_time[:]), np.max(exe_time[:]),
+            np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        4: ['Model_5','lineitem_table', 'L_ORDERKEY', 'SELECTION QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size,
+            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        5: ['Model_6','lineitem_table', 'L_ORDERKEY', 'JOIN QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size,
+            np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])],
+        6: ['Model_7','order_table', 'O_ORDERKEY', 'JOIN QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size, np.min(exe_time[:]), np.max(exe_time[:]),
+            np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:]) ],
+        7: ['Model_8','order_table', 'O_ORDERKEY', 'SELECTION QUERY', min_orderkey_range[idx], max_orderkey_range[idx], size, np.min(exe_time[:]),
+            np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:]) ]
     }
     return switcher.get(case, "")
+
 
 
 """
@@ -99,7 +118,7 @@ def run_SQL_executor():
 
     # CSV File header
     ouputLines  = []
-    columns     = ['Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
+    columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
                    'Min_Execution_Time', 'Max_Execution_Time', 'Avg_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time']
     ouputLines.append(columns)
 
