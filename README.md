@@ -14,3 +14,4 @@ I have renamed 'test1.py' to 'SQL_QUERY_GEN_Ver1_1.py', and 'Test2.py' to 'SQL_Q
 'Random_Gen_1_1_Zipf_Results.csv' has been uploaded. 
 'SQL_QUERY_GEN_Ver3_2.py' is the modified version to 'SQL_QUERY_GEN_Ver3_1.py' and the 'main_SQL_QUERY_GEN_Ver3_2.py' is the script which is to run the script on Python IDE or command line.
 'Random_Gen_1_4_Results.csv' is the output file from running the 'main_SQL_QUERY_GEN_Ver3_2.py' script.
+'Random_Gen_1_5_Results.csv' and 'Random_Gen_1_5_Zipf_Results.csv' are the latest results generated on running 'main_SQL_QUERY_GEN_Ver3_2.py' script for random uniform distribution and zipf distribution respectively.
