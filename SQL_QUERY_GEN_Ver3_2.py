@@ -119,7 +119,7 @@ def run_SQL_executor():
     # CSV File header
     ouputLines  = []
     columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
-                   'Min_Execution_Time', 'Max_Execution_Time', 'Avg_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time']
+                   'Min_Execution_Time', 'Max_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time', 'Avg_Execution_Time']
     ouputLines.append(columns)
 
     """
@@ -202,18 +202,18 @@ def init_query_executor(queryCnt, maxIters, qType):
 
     # Generate random price range values
 
-    temp = generate_minmax_range(extended_price_min, extended_price_max, maxQueryCnt, 5, 'uniform')
+    temp = generate_minmax_range(extended_price_min, extended_price_max, maxQueryCnt, 5)
     min_ext_range_price = temp["min_values"]
     max_ext_range_price = temp["max_values"]
 
     # Generate random order key range values
 
-    temp = generate_minmax_range(orderKey_min, orderKey_max, maxQueryCnt, 0, 'uniform')
+    temp = generate_minmax_range(orderKey_min, orderKey_max, maxQueryCnt, 0)
     min_orderkey_range = temp["min_values"]
     max_orderkey_range = temp["max_values"]
 
     # Generate random totalprice  range values
 
-    temp = generate_minmax_range(total_price_min, total_price_max, maxQueryCnt, 5, 'uniform')
+    temp = generate_minmax_range(total_price_min, total_price_max, maxQueryCnt, 5)
     min_total_price = temp["min_values"]
     max_total_price = temp["max_values"]
