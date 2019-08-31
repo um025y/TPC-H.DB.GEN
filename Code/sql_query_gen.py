@@ -44,7 +44,6 @@ def random_zipf(a: np.float64, min: np.uint64, max: np.uint64, perm_vals: list, 
 def generate_minmax(dist, minVal: int, maxVal: int, cnt = 5, selectivity = 0.6, *, zipf_a = 1.2, perm_vals = None, pdf_vals = None):
     min_values  = []
     max_values  = []
-    print(type(maxVal), type(minVal), type(selectivity))
     range_val   = (maxVal - minVal + 1) * selectivity
     _maxVal     = maxVal - range_val
     if dist == 'uniform':
@@ -187,21 +186,19 @@ def init_query_executor(maxQueryCnt, select, dist, *, zipf_a=1.2, sf = 1, seed =
     ext_price_p     = []
     tot_price_v     = []
     tot_price_p     = []
-    print(dbprefix + str(sf))
-    #connection = .connect(dbhost, dbuser, dbpass, dbprefix + str(sf))
-
 
     cursor = db_connect(dbhost, dbuser, dbpass, dbprefix + str(sf))
-    #cursor = connection.cursor()
     
-
     params = {}
 
     logging.getLogger().info('Gathering statistics...')
     for attr in attrs.keys():
         query = "SELECT MIN(" + attr + "), MAX(" + attr + ") FROM " + attrs[attr]
+        logging.getLogger().debug('Executing query "' + query + '"...')
         cursor.execute(query)
         result = cursor.fetchone()
+        if result[0] == None or result[1] == None:
+            raise ValueError('Table "' + attrs[attr] + '" is empty; bailing out...')
         params[attr] = {}
         params[attr]['min'] = result[0]
         params[attr]['max'] = result[1]
