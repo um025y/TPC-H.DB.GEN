@@ -41,7 +41,7 @@ def random_zipf(a: np.float64, min: np.uint64, max: np.uint64, perm_vals: list, 
 """
     Generate Minimum and Maximum values
 """
-def generate_minmax(dist, minVal: int, maxVal: int, cnt = 5, selectivity = 0.6, *, zipf_a = 1.2, perm_vals = None, pdf_vals = None):
+def generate_minmax(dist, minVal: int, maxVal: int, cnt = 5, selectivity = 0.1, *, zipf_a = 1.2, perm_vals = None, pdf_vals = None):
     min_values  = []
     max_values  = []
     range_val   = (maxVal - minVal + 1) * selectivity
@@ -204,6 +204,7 @@ def init_query_executor(maxQueryCnt, select, dist, *, zipf_a=1.2, sf = 1, seed =
         params[attr]['max'] = result[1]
         params[attr]['vals'] = None
         params[attr]['pdf'] = None
+        logging.getLogger().debug('Statistics for column "' + attr + '": ' + str(params[attr]))
     logging.getLogger().info('Done gathering statistics')
 
     if dist=='zipf':
@@ -219,14 +220,14 @@ def init_query_executor(maxQueryCnt, select, dist, *, zipf_a=1.2, sf = 1, seed =
                 else:
                     params[attr][param] = []
             
-    for attr in attrs:
+    for attr in attrs.keys():
         # Generate random price range values
         temp = generate_minmax(dist, params[attr]['min'], params[attr]['max'], maxQueryCnt, select, zipf_a = zipf_a, perm_vals = params[attr]['vals'], pdf_vals = params[attr]['pdf'])
         minmax[attr] = {'min' : temp["min_values"], 'max' : temp["max_values"]}
 
     # First time store permutaion and probalities into a file
     if dist=='zipf':
-        for attr in attrs:
+        for attr in attrs.keys():
             for param in ['vals', 'pdf']:
                 if not savePermPdf[attr][param]:
                     np.savetxt(attr + '_' + param[0] + "-" + str(seed) + '.csv', params[attr][param], delimiter=",")
