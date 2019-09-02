@@ -41,7 +41,7 @@ def check_range(_value, minv, maxv = None):
     return value
 
 def check_01(value):
-    check_range(value, 0, 1)
+    return check_range(value, 0, 1)
 
 def check_int(value, minv, maxv = None):
     try:
@@ -77,8 +77,12 @@ log_switcher = {
         }
 logging.basicConfig(level = log_switcher.get(args.verbose, logging.DEBUG), stream = sys.stderr)
 
-logging.getLogger().info("Using " + args.distribution + " distribution with random seed: " + str(seed))
+logging.getLogger().info("Configuration: [" + args.distribution + " (seed = " +
+        str(seed) + ", a = " + str(args.zipf_a) + "), #queries = " +
+        str(args.queryCount) + ", #iterations = " + str(args.iterations) +
+        ", selectivity = " + str(args.selectivity) + ", scalefactor = " +
+        str(args.scalefactor) + "]")
 
-sqg.init_query_executor(args.queryCount, args.selectivity, args.distribution, zipf_a = args.zipf_a, sf = scalefactor, seed = args.randomseed)
+sqg.init_query_executor(args.queryCount, args.selectivity, args.distribution, zipf_a = args.zipf_a, sf = args.scalefactor, seed = args.randomseed)
 output = sqg.run_SQL_executor(args.queryCount, args.iterations)
 sqg.write_results_to_file(args.output, output)
