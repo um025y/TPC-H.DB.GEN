@@ -65,7 +65,7 @@ parser.add_argument('--queryCount',   '-C', help = 'Number of query instances pe
 parser.add_argument('--iterations',   '-I', help = 'Number of iterations for execution of each query instance', default = numIterations, type = check_nonneg)
 parser.add_argument('--selectivity',  '-S', help = 'Selectivity value float number within [0,1]', default = selectivity, type = check_01)
 parser.add_argument('--scalefactor',  '-F', help = 'TPCH scalefactor', default = scalefactor, type = int, choices=[1, 10, 100])
-parser.add_argument('--fname',        '-N', help = 'Filename where to store execution stats/results', default = 'test.csv', type = str)
+parser.add_argument('--output',       '-O', help = 'Filename where to store execution stats/results', default = 'test.csv', type = str)
 parser.add_argument('--randomseed',   '-R', help = 'Set the random number seed', default = seed, type = check_pos)
 parser.add_argument('--verbose',      '-v', help = 'Turn logging on; specify multiple times for more verbosity', action = 'count')
 
@@ -84,5 +84,5 @@ logging.getLogger().info("Configuration: [" + args.distribution + " (seed = " +
         str(args.scalefactor) + "]")
 
 sqg.init_query_executor(args.queryCount, args.selectivity, args.distribution, zipf_a = args.zipf_a, sf = args.scalefactor, seed = args.randomseed)
-output = sqg.run_SQL_executor(args.queryCount, args.iterations, fname)
+sqg.run_SQL_executor(args.queryCount, args.iterations, '/home/udayan/UofG/Scripts/'+args.output)
 #sqg.write_results_to_file(args.output, output)
