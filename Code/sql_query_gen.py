@@ -14,11 +14,9 @@ dbuser = 'udayan'
 # DB password
 dbpass = 'udayan'
 
-# File Name
-fname = 'SF1_Uniform_Results_5.csv'
-
 # DB prefix
 dbprefix = 'TPCH_DATABASE_SCALE_'
+
 
 # Caution: query string generator assumes that the join condition is on the two first attributes in this dictionary
 attrs = {'o_orderkey' : 'order_table', 'l_orderkey' : 'lineitem_table', 'l_extendedprice' : 'lineitem_table', 'o_totalprice' : 'order_table'}
@@ -104,14 +102,12 @@ def execute_query(cursor, sql_query):
 """
 
 def run_SQL_executor(numInstances, numIterations, fname):
-    
-    f1 = open(fname, 'w', newline='')
     # CSV File header
     #ouputLines  = []
     columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
                    'Min_Execution_Time', 'Max_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time', 'Avg_Execution_Time']
-    f1.write(columns)
-    #ouputLines.append(columns)
+    
+        #ouputLines.append(columns)
 
     """
         For each query type
@@ -122,27 +118,30 @@ def run_SQL_executor(numInstances, numIterations, fname):
     """
 
     logging.getLogger().info('Executing queries...')
-    for qtype in ['RANGE', 'JOIN']:
-        for attr in attrs.keys():
-            for q in range(numInstances):
-                execution_time = []
-                temp_time = []
-                results = dict()
-                for k in range(numIterations):
-                    # Get SQL Query
-                    query = get_query_string(attr, q, qtype)
-                    # Execute and obtain necessary stats
-                    logging.getLogger().info("Executing " + qtype + " query " + str(q + 1) + "/" + str(numInstances) + " with constraint on " + attrs[attr] + "." + attr)
-                    results = execute_query(cursor, query)
-                    execution_time.append(results["execution_time"])
-                  
-                f1.write(['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][idx], minmax[attr]['max'][idx], size, np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])])
-                f1.flush()
-
-    logging.getLogger().info('Done executing queries')
-    cursor.close()          # Closing the Database Connection Cursor
+    with open(fname, 'w', newline='') as f1:
+        writer = csv.DictWriter(f1, fieldnames = columns)
+        writer.writeheader()
+        for qtype in ['RANGE', 'JOIN']:
+            for attr in attrs.keys():
+                for q in range(numInstances):
+                    execution_time = []
+                    temp_time = []
+                    results = dict()
+                    for k in range(numIterations):
+                        # Get SQL Query
+                        query = get_query_string(attr, q, qtype)
+                        # Execute and obtain necessary stats
+                        logging.getLogger().info("Executing " + qtype + " query " + str(q + 1) + "/" + str(numInstances) + " with constraint on " + attrs[attr] + "." + attr)
+                        results = execute_query(cursor, query)
+                        execution_time.append(results["execution_time"])
+        writer.writerows(['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][idx], minmax[attr]['max'][idx], size, np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])])
+        f1.flush()
+        logging.getLogger().info('Done executing queries')
+        cursor.close()          # Closing the Database Connection Cursor
     f1.close()
     #return ouputLines
+
+    
 
 """
     Write all results into CSV based on the fileName passed
@@ -150,9 +149,10 @@ def run_SQL_executor(numInstances, numIterations, fname):
 
 #def write_results_to_file(fName, output):
     # Write all the results obtained in output array into file
-    #with open(fName, 'w', newline='') as writeFile:
-        #writer = csv.writer(writeFile)
-        #writer.writerows(output)
+    #bufsize = 100
+    #f1 = open(fName, 'w', bufsize, newline='')
+    #writer = csv.writer(f1)
+    #writer.writerows(output)
 
     #writeFile.close()
 
