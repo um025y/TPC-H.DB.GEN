@@ -1,7 +1,7 @@
 import argparse
 import logging
 import numpy as np
-import sql_query_gen_test as sqg
+import sql_query_gen as sqg
 import sys
 
 # Number of times to execute each query with different query parameter
@@ -85,4 +85,3 @@ logging.getLogger().info("Configuration: [" + args.distribution + " (seed = " +
 
 sqg.init_query_executor(args.queryCount, args.selectivity, args.distribution, zipf_a = args.zipf_a, sf = args.scalefactor, seed = args.randomseed)
 sqg.run_SQL_executor(args.queryCount, args.iterations, fname = args.output)
-#sqg.write_results_to_file(args.output, output)
