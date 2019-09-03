@@ -78,13 +78,6 @@ def get_query_string(attr, idx, qtype):
     return "select * from " + qfrom + " where " + attr + " between '" + str(minmax[attr]['min'][idx]) + "' AND '" + str(minmax[attr]['max'][idx]) + "';"
 
 """
-    Get CSV line based on query used
-"""
-
-def get_CSV_line(attr, idx, qtype, size, exe_time):
-    return ['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][idx], minmax[attr]['max'][idx], size, np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])]
-
-"""
     Execute query and return required results
 """
 
@@ -103,12 +96,9 @@ def execute_query(cursor, sql_query):
 
 def run_SQL_executor(numInstances, numIterations, fname):
     # CSV File header
-    #ouputLines  = []
     columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
                    'Min_Execution_Time', 'Max_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time', 'Avg_Execution_Time']
     
-        #ouputLines.append(columns)
-
     """
         For each query type
         1. For a given range values obtain query string
@@ -118,44 +108,26 @@ def run_SQL_executor(numInstances, numIterations, fname):
     """
 
     logging.getLogger().info('Executing queries...')
-    with open(fname, 'w', newline='') as f1:
-        writer = csv.DictWriter(f1, fieldnames = columns)
-        writer.writeheader()
-        for qtype in ['RANGE', 'JOIN']:
-            for attr in attrs.keys():
-                for q in range(numInstances):
-                    execution_time = []
-                    temp_time = []
-                    results = dict()
-                    for k in range(numIterations):
-                        # Get SQL Query
-                        query = get_query_string(attr, q, qtype)
-                        # Execute and obtain necessary stats
-                        logging.getLogger().info("Executing " + qtype + " query " + str(q + 1) + "/" + str(numInstances) + " with constraint on " + attrs[attr] + "." + attr)
-                        results = execute_query(cursor, query)
-                        execution_time.append(results["execution_time"])
-        writer.writerows(['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][idx], minmax[attr]['max'][idx], size, np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])])
-        f1.flush()
-        logging.getLogger().info('Done executing queries')
-        cursor.close()          # Closing the Database Connection Cursor
-    f1.close()
-    #return ouputLines
-
-    
-
-"""
-    Write all results into CSV based on the fileName passed
-"""
-
-#def write_results_to_file(fName, output):
-    # Write all the results obtained in output array into file
-    #bufsize = 100
-    #f1 = open(fName, 'w', bufsize, newline='')
-    #writer = csv.writer(f1)
-    #writer.writerows(output)
-
-    #writeFile.close()
-
+    outfile = open(fname, 'w', newline='')
+    writer = csv.writer(outfile)
+    writer.writerow(columns)
+    for qtype in ['RANGE', 'JOIN']:
+        for attr in attrs.keys():
+            for q in range(numInstances):
+                exe_time = []
+                results = dict()
+                for k in range(numIterations):
+                    # Get SQL Query
+                    query = get_query_string(attr, q, qtype)
+                    # Execute and obtain necessary stats
+                    logging.getLogger().debug("Executing " + qtype + " query " + str(q + 1) + "/" + str(numInstances) + " with constraint on " + attrs[attr] + "." + attr + " (iteration #" + str(k + 1) + "/" + str(numIterations) + ")")
+                    results = execute_query(cursor, query)
+                    exe_time.append(results["execution_time"])
+                writer.writerow(['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][q], minmax[attr]['max'][q], results['size'], np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])])
+                outfile.flush()
+    logging.getLogger().info('Done executing queries')
+    cursor.close()          # Closing the Database Connection Cursor
+    outfile.close()
 
 def db_connect(hostName, userName, password, dbName):
     connection = MySQLdb.connect(host=hostName, user=userName, passwd=password, db=dbName)
