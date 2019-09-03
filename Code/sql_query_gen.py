@@ -103,7 +103,7 @@ def execute_query(cursor, sql_query):
     Main program to call running of SQL executor
 """
 
-def run_SQL_executor(numInstances, numIterations, f1):
+def run_SQL_executor(numInstances, numIterations, fname):
     
     f1 = open(fname, 'w', newline='')
     # CSV File header
@@ -148,13 +148,13 @@ def run_SQL_executor(numInstances, numIterations, f1):
     Write all results into CSV based on the fileName passed
 """
 
-def write_results_to_file(fName, output):
+#def write_results_to_file(fName, output):
     # Write all the results obtained in output array into file
-    with open(fName, 'w', newline='') as writeFile:
-        writer = csv.writer(writeFile)
-        writer.writerows(output)
+    #with open(fName, 'w', newline='') as writeFile:
+        #writer = csv.writer(writeFile)
+        #writer.writerows(output)
 
-    writeFile.close()
+    #writeFile.close()
 
 
 def db_connect(hostName, userName, password, dbName):
