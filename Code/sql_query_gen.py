@@ -14,6 +14,9 @@ dbuser = 'udayan'
 # DB password
 dbpass = 'udayan'
 
+# File Name
+fname = 'SF1_Uniform_Results_5.csv'
+
 # DB prefix
 dbprefix = 'TPCH_DATABASE_SCALE_'
 
@@ -100,13 +103,15 @@ def execute_query(cursor, sql_query):
     Main program to call running of SQL executor
 """
 
-def run_SQL_executor(numInstances, numIterations):
-
+def run_SQL_executor(numInstances, numIterations, f1):
+    
+    f1 = open(fname, 'w', newline='')
     # CSV File header
-    ouputLines  = []
+    #ouputLines  = []
     columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
                    'Min_Execution_Time', 'Max_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time', 'Avg_Execution_Time']
-    ouputLines.append(columns)
+    f1.write(columns)
+    #ouputLines.append(columns)
 
     """
         For each query type
@@ -131,12 +136,13 @@ def run_SQL_executor(numInstances, numIterations):
                     results = execute_query(cursor, query)
                     execution_time.append(results["execution_time"])
                   
-                ouputLines.append(get_CSV_line(attr, q, qtype, results["size"], execution_time))
+                f1.write(['Model_' + qtype + '_' + attr, attrs[attr], attr, qtype, minmax[attr]['min'][idx], minmax[attr]['max'][idx], size, np.min(exe_time[:]), np.max(exe_time[:]), np.median(exe_time[:]), np.std(exe_time[:]), np.mean(exe_time[:])])
+                f1.flush()
 
     logging.getLogger().info('Done executing queries')
     cursor.close()          # Closing the Database Connection Cursor
-    
-    return ouputLines
+    f1.close()
+    #return ouputLines
 
 """
     Write all results into CSV based on the fileName passed
