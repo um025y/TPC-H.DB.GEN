@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import csv
 from scipy.special import expit
 from sklearn.feature_selection import RFE
 from sklearn.model_selection import train_test_split
@@ -16,14 +17,28 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import median_absolute_error, r2_score, max_error, mean_squared_error, explained_variance_score
 
-df = pd.read_csv('SF1_Zipf_5.csv')
 
-df1 = df.loc[df['Model_Num']=='Model_RANGE_o_orderkey']
+#reader  = csv.reader(open("SF1_Uniform_5.csv"))
+#reader1 = csv.reader(open("SF1_Uniform_25.csv"))
+#next(reader1, None)
+#f = open("SF1_Uniform_5_25.csv", "w", newline = '')
+#writer = csv.writer(f)
+
+#for row in reader:
+    #writer.writerow(row)
+#for row in reader1:
+    #writer.writerow(row)
+#f.close()
+
+
+df = pd.read_csv('SF1_Zipf_5_25.csv')
+
+df1 = df.loc[df['Model_Num']=='Model_JOIN_l_extendedprice']
 
 X = df1.iloc[:,4:6]
-Y = df1.iloc[:,11]
+Y = df1.iloc[:,6]
 
 X_train, X_test, Y_train, Y_test = train_test_split (X, Y, test_size = 0.2, random_state = 42)
 
@@ -40,40 +55,112 @@ pipelines.append(('ScaledGBM',      Pipeline([('Scaler', StandardScaler()),('GBM
 
 for name, model in pipelines:
     kfold       = KFold(n_splits=10, random_state=21)
+    cv_results  = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='explained_variance')
+    results.append(cv_results)
+    names.append(name)
+    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+    print(msg)
+
+
+scaler      = StandardScaler().fit(X_train)
+rescaledX   = scaler.transform(X_train)
+params  =   {'n_neighbors':[5, 10, 15, 20, ]}
+model       = KNeighborsRegressor()
+kfold       = KFold(n_splits=10, random_state=21)
+grid_1        = GridSearchCV(estimator=model, param_grid=params, scoring='explained_variance', cv=kfold)
+grid_result_1 = grid_1.fit(rescaledX, Y_train)
+
+means_1       = grid_result_1.cv_results_['mean_test_score']
+stds_1        = grid_result_1.cv_results_['std_test_score']
+params_1      = grid_result_1.cv_results_['params']
+
+for mean_1, stdev_1, param_1 in zip(means_1, stds_1, params_1):
+    print("%f (%f) with: %r" % (mean_1, stdev_1, param_1))
+
+print("Best: %f using %s" % (grid_result_1.best_score_, grid_result_1.best_params_))
+
+
+scaler              = StandardScaler().fit(X_train)
+rescaled_X_train    = scaler.transform(X_train)
+model               = KNeighborsRegressor()
+model.fit(X_train, Y_train)
+
+rescaled_X_test     = scaler.transform(X_test)
+predictions         = model.predict(X_test)
+print(explained_variance_score(Y_test, predictions))
+
+compare = pd.DataFrame({'Prediction': predictions, 'Test Data' : Y_test})
+print(compare)
+
+
+for name, model in pipelines:
+    kfold       = KFold(n_splits=10, random_state=21)
     cv_results  = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='r2')
     results.append(cv_results)
     names.append(name)
     msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
     print(msg)
 
-scaler      = StandardScaler().fit(X_train)
-rescaledX   = scaler.transform(X_train)
-#param_grid  = dict(n_estimators=np.array([50,100,200,300,400]))
-#model       = GradientBoostingRegressor(random_state=21)
-params  = {'min_samples_split':[2, 3, 5, 7, 11]}
-model       = DecisionTreeRegressor()
-kfold       = KFold(n_splits=10, random_state=21)
-grid        = GridSearchCV(estimator=model, param_grid=params, scoring='r2', cv=kfold)
-grid_result = grid.fit(rescaledX, Y_train)
 
-means       = grid_result.cv_results_['mean_test_score']
-stds        = grid_result.cv_results_['std_test_score']
-params      = grid_result.cv_results_['params']
 
-for mean, stdev, param in zip(means, stds, params):
-    print("%f (%f) with: %r" % (mean, stdev, param))
+params  =   {'n_neighbors':[5, 10, 15, 20, ]}
+model       = KNeighborsRegressor()
+grid_2        = GridSearchCV(estimator=model, param_grid=params, scoring='r2', cv=kfold)
+grid_result_2 = grid_2.fit(rescaledX, Y_train)
 
-print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+means_2       = grid_result_2.cv_results_['mean_test_score']
+stds_2        = grid_result_2.cv_results_['std_test_score']
+params_2      = grid_result_2.cv_results_['params']
+
+for mean_2, stdev_2, param_2 in zip(means_2, stds_2, params_2):
+    print("%f (%f) with: %r" % (mean_2, stdev_2, param_2))
+
+print("Best: %f using %s" % (grid_result_2.best_score_, grid_result_2.best_params_))
 
 
 scaler              = StandardScaler().fit(X_train)
 rescaled_X_train    = scaler.transform(X_train)
-model               = DecisionTreeRegressor()
+model               = KNeighborsRegressor()
 model.fit(X_train, Y_train)
 
 rescaled_X_test     = scaler.transform(X_test)
 predictions         = model.predict(X_test)
 print(r2_score(Y_test, predictions))
+
+compare = pd.DataFrame({'Prediction': predictions, 'Test Data' : Y_test})
+print(compare)
+
+for name, model in pipelines:
+    kfold       = KFold(n_splits=10, random_state=21)
+    cv_results  = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='neg_mean_squared_error')
+    results.append(cv_results)
+    names.append(name)
+    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+    print(msg)
+
+params  =   {'n_neighbors':[5, 10, 15, 20, ]}
+model       = KNeighborsRegressor()
+grid_3        = GridSearchCV(estimator=model, param_grid=params, scoring='neg_mean_squared_error', cv=kfold)
+grid_result_3 = grid_3.fit(rescaledX, Y_train)
+
+means_3      = grid_result_3.cv_results_['mean_test_score']
+stds_3       = grid_result_3.cv_results_['std_test_score']
+params_3      = grid_result_3.cv_results_['params']
+
+for mean_3, stdev_3, param_3 in zip(means_3, stds_3, params_3):
+    print("%f (%f) with: %r" % (mean_3, stdev_3, param_3))
+
+print("Best: %f using %s" % (grid_result_3.best_score_, grid_result_3.best_params_))
+
+
+scaler              = StandardScaler().fit(X_train)
+rescaled_X_train    = scaler.transform(X_train)
+model               = KNeighborsRegressor()
+model.fit(X_train, Y_train)
+
+rescaled_X_test     = scaler.transform(X_test)
+predictions         = model.predict(X_test)
+print(mean_squared_error(Y_test, predictions))
 
 compare = pd.DataFrame({'Prediction': predictions, 'Test Data' : Y_test})
 print(compare)
