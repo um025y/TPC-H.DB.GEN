@@ -1,8 +1,9 @@
 import argparse
 import logging
 import numpy as np
-import sql_query_gen as sqg
 import sys
+sys.path.append(sys.path[0])
+import sql_query_gen as sqg
 
 # Number of times to execute each query with different query parameter
 queryCount = 10
