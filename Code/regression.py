@@ -17,7 +17,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import median_absolute_error, r2_score, max_error, mean_squared_error, explained_variance_score
+from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
 
 
 #reader  = csv.reader(open("SF1_Uniform_5.csv"))
