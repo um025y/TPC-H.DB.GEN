@@ -96,7 +96,7 @@ def execute_query(cursor, sql_query):
 
 def run_SQL_executor(numInstances, numIterations, fname):
     # CSV File header
-    columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result Set Returned',
+    columns     = ['Model_Num', 'Table_Name', 'Column_Name', 'Query_Type', 'Range_Min', 'Range_Max', 'Result_Set_Returned',
                    'Min_Execution_Time', 'Max_Execution_Time', 'Med_Execution_Time','Std_Deviation_Exe_Time', 'Avg_Execution_Time']
     
     """
