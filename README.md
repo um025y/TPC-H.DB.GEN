@@ -1,5 +1,5 @@
 **********************************************ReadMe File****************************************************
-1.There are four python scripts that were developed in the completion of this project - main.py, sql_query_gen.py , utils.py, regression.py
+1.There are four python scripts that were developed in the completion of this project in the Code_Results directory - main.py, sql_query_gen.py , utils.py, regression.py
 2. The sql_query_gen.py is an automated SQL query generator, that models the SQL query and executes them on MySQL database taking into consideration the user inputs for distribution type, query counts, query iterations, selectivity value, random seeds, zipf distribution parameter, scale factor of the datset, output names of file(to store the output results) when run from the main file.
 3. The database hostname, database name prefix, database user ID and password are all specified in sql_query_gen.py
 4. The utils.py contains all the check functions to validate the user inputs of the above mentioned variables. If the inputs given by the user do not match the expected values of these variables, error will be thrown. 
