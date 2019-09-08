@@ -13,11 +13,9 @@ from sklearn import model_selection
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Lasso
 from sklearn.linear_model import ElasticNet
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
+from sklearn.metrics import r2_score, explained_variance_score
 
 
 #reader  = csv.reader(open("SF1_Uniform_5.csv"))
@@ -33,9 +31,9 @@ from sklearn.metrics import r2_score, mean_squared_error, explained_variance_sco
 #f.close()
 
 
-df = pd.read_csv('SF1_Zipf_5_25.csv')
+df = pd.read_csv('SF1_Uniform_5_25.csv')
 
-df1 = df.loc[df['Model_Num']=='Model_JOIN_l_extendedprice']
+df1 = df.loc[df['Model_Num']=='Model_RANGE_l_extendedprice']
 
 X = df1.iloc[:,4:6]
 Y = df1.iloc[:,6]
@@ -50,8 +48,7 @@ pipelines.append(('ScaledLR',       Pipeline([('Scaler', StandardScaler()),('LR'
 pipelines.append(('ScaledLASSO',    Pipeline([('Scaler', StandardScaler()),('LASSO',Lasso())])))
 pipelines.append(('ScaledEN',       Pipeline([('Scaler', StandardScaler()),('EN',   ElasticNet())])))
 pipelines.append(('ScaledKNN',      Pipeline([('Scaler', StandardScaler()),('KNN',  KNeighborsRegressor())])))
-pipelines.append(('ScaledCART',     Pipeline([('Scaler', StandardScaler()),('CART', DecisionTreeRegressor())])))
-pipelines.append(('ScaledGBM',      Pipeline([('Scaler', StandardScaler()),('GBM',  GradientBoostingRegressor())])))
+
 
 for name, model in pipelines:
     kfold       = KFold(n_splits=10, random_state=21)
@@ -101,8 +98,6 @@ for name, model in pipelines:
     msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
     print(msg)
 
-
-
 params  =   {'n_neighbors':[5, 10, 15, 20, ]}
 model       = KNeighborsRegressor()
 grid_2        = GridSearchCV(estimator=model, param_grid=params, scoring='r2', cv=kfold)
@@ -126,41 +121,6 @@ model.fit(X_train, Y_train)
 rescaled_X_test     = scaler.transform(X_test)
 predictions         = model.predict(X_test)
 print(r2_score(Y_test, predictions))
-
-compare = pd.DataFrame({'Prediction': predictions, 'Test Data' : Y_test})
-print(compare)
-
-for name, model in pipelines:
-    kfold       = KFold(n_splits=10, random_state=21)
-    cv_results  = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='neg_mean_squared_error')
-    results.append(cv_results)
-    names.append(name)
-    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-    print(msg)
-
-params  =   {'n_neighbors':[5, 10, 15, 20, ]}
-model       = KNeighborsRegressor()
-grid_3        = GridSearchCV(estimator=model, param_grid=params, scoring='neg_mean_squared_error', cv=kfold)
-grid_result_3 = grid_3.fit(rescaledX, Y_train)
-
-means_3      = grid_result_3.cv_results_['mean_test_score']
-stds_3       = grid_result_3.cv_results_['std_test_score']
-params_3      = grid_result_3.cv_results_['params']
-
-for mean_3, stdev_3, param_3 in zip(means_3, stds_3, params_3):
-    print("%f (%f) with: %r" % (mean_3, stdev_3, param_3))
-
-print("Best: %f using %s" % (grid_result_3.best_score_, grid_result_3.best_params_))
-
-
-scaler              = StandardScaler().fit(X_train)
-rescaled_X_train    = scaler.transform(X_train)
-model               = KNeighborsRegressor()
-model.fit(X_train, Y_train)
-
-rescaled_X_test     = scaler.transform(X_test)
-predictions         = model.predict(X_test)
-print(mean_squared_error(Y_test, predictions))
 
 compare = pd.DataFrame({'Prediction': predictions, 'Test Data' : Y_test})
 print(compare)
