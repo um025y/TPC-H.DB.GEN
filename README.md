@@ -18,5 +18,5 @@ Important Notes-
 a)During my study, all the query models did not have equal no. of query instances due to the volume of the data on which it had to be computed from. 
 b) I have commented out the lines for merging the selectivity values for each distribution type, as I had already merged them once.
 c) Appropriate packages must be imported to run the scripts. I had imported the packages which are compatible with Python 3.7.
-d) I have compiled a sample of the regression model's prediction output to the actual output which appeared on the console.
+d) I have compiled a portion of the regression model's prediction output to the actual output which appeared on the console. However I had checked for each query model before reporting my results in the report file.
 e) For regression of my model I had taken reference from the following site : https://www.kaggle.com/junkal/selecting-the-best-regression-model. 
