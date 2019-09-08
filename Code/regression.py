@@ -6,7 +6,7 @@ from pathlib import Path
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, SGDRegressor
-from sklearn.metrics import make_scorer, mean_squared_error, r2_score, explained_variance_score
+from sklearn.metrics import mean_squared_error, r2_score, explained_variance_score, median_absolute_error, mean_absolute_error
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
@@ -30,19 +30,27 @@ scalefactor = 1
 # Distribution
 distribution  = 'Zipf'
 
+# Cost function to use during CV Grid Search
+scoring = 'neg_median_absolute_error'
+
+# Attribute to predict
+outvar = "Avg_Execution_Time"
+
 modelprefix='Model_'
 
-def run_train_test(scalefactor, distribution, querytype, attribute, num_folds, verbose):
-    df = pd.read_csv(Path(sys.path[0] + '/../Results') / ('SF' + str(args.scalefactor) + '_' + args.distribution + '.csv'))
-    df1 = df.loc[df['Model_Num'] == (modelprefix + args.querytype + "_" + args.attribute)]
+def get_data_splits(scalefactor, distribution, querytype, inattr, outattr):
+    df = pd.read_csv(Path(sys.path[0] + '/../Results') / ('SF' + str(scalefactor) + '_' + distribution + '.csv'))
+    df1 = df.loc[df['Model_Num'] == (modelprefix + querytype + "_" + inattr)]
 
     X_all = df1[['Range_Min', 'Range_Max']]
     X_all = X_all.assign(Range = lambda x: (x['Range_Max'] - x['Range_Min']))
     X_all = X_all.drop(columns = ['Range_Max'])
-    Y_all = df1[['Avg_Execution_Time']]
+    Y_all = df1[[outattr]]
 
-    X, X_test, Y, Y_test = train_test_split (X_all, Y_all, test_size = 0.2)
+    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size = 0.2)
+    return (X, X_test, Y.values.ravel(), Y_test.values.ravel())
 
+def find_best_estimator(X, Y, num_folds, scoring, verbose):
     pipelines = [
         {
             'name': 'LR',
@@ -120,13 +128,13 @@ def run_train_test(scalefactor, distribution, querytype, attribute, num_folds, v
             'name': 'GBM',
             'scaled': False,
             'model': GradientBoostingRegressor(),
-            'params': { 'n_estimators':[100, 200], 'loss':['ls', 'lad', 'huber'], 'learning_rate':[.05, .01, .005], 'max_depth':[3, 6], 'min_samples_split':[.01,.1,.2], 'min_samples_leaf':[1,3], 'max_features':[1, 2], 'subsample':[1.0, 0.9] }
+            'params': { 'n_estimators':[100, 200], 'loss':['ls', 'lad', 'huber'], 'learning_rate':[.05, .005], 'max_depth':[3, 6], 'min_samples_split':[.02,.2], 'min_samples_leaf':[1,3], 'max_features':[1, 2], 'subsample':[1.0, 0.9] }
         },
         {
             'name': 'ScaledGBM',
             'scaled': True,
             'model': GradientBoostingRegressor(),
-            'params': { 'n_estimators':[100, 200], 'loss':['ls', 'lad', 'huber'], 'learning_rate':[.05, .01, .005], 'max_depth':[3, 6], 'min_samples_split':[.01,.1,.2], 'min_samples_leaf':[1,3], 'max_features':[1, 2], 'subsample':[1.0, 0.9] }
+            'params': { 'n_estimators':[100, 200], 'loss':['ls', 'lad', 'huber'], 'learning_rate':[.05, .005], 'max_depth':[3, 6], 'min_samples_split':[.02,.2], 'min_samples_leaf':[1,3], 'max_features':[1, 2], 'subsample':[1.0, 0.9] }
         }
     ]
 
@@ -146,7 +154,7 @@ def run_train_test(scalefactor, distribution, querytype, attribute, num_folds, v
         pipeidx += 1
         print("Processing model " + str(pipeidx) + "/" + str(len(pipelines)) + " (" + pipeline['name'] + ")... ", end="")
         sys.stdout.flush()
-        grid        = GridSearchCV(estimator=pipeline['model'], param_grid=pipeline['params'], scoring='explained_variance', cv=num_folds, n_jobs=num_jobs, error_score=np.nan, verbose=args.verbose)
+        grid        = GridSearchCV(estimator=pipeline['model'], param_grid=pipeline['params'], scoring=scoring, cv=num_folds, n_jobs=num_jobs, error_score=np.nan, verbose=args.verbose)
         grid_result = grid.fit(_X, Y)
         print("Done")
 
@@ -158,28 +166,47 @@ def run_train_test(scalefactor, distribution, querytype, attribute, num_folds, v
         sys.stdout.flush()
 
     print("Best estimator: " + str(best_model))
+    return (best_model, best_pipeline['scaled'])
 
-    if best_pipeline['scaled'] == True:
+
+def run_test(best_model, is_scaled, X_test, Y_test):
+    if is_scaled == True:
         _X = StandardScaler().fit(X_test).transform(X_test)
     else:
         _X = X_test
     predictions = best_model.predict(_X)
-    print("Regression (explained variance) score over the validation set: " + str(explained_variance_score(Y_test, predictions)))
-
-    compare = pd.DataFrame({'Prediction': predictions, 'Validation Data' : Y_test})
-    print(compare)
+    mdae = median_absolute_error(Y_test, predictions)
+    mae = mean_absolute_error(Y_test, predictions)
+    mse = mean_squared_error(Y_test, predictions)
+    ev = explained_variance_score(Y_test, predictions)
+    r2 = r2_score(Y_test, predictions)
+    return (predictions, {'mdae': mdae, 'mae': mae, 'mse': mse, 'ev': ev, 'r2': r2})
 
 # Parse Arguments
 parser=argparse.ArgumentParser(description='TPC-H query runtime/result set size predictor', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--distribution', '-D', help = 'Select a distribution uniform or zipf', default = distribution, type = str, choices=['Uniform','Zipf'])
 parser.add_argument('--scalefactor',  '-F', help = 'TPCH scalefactor', default = scalefactor, type = int, choices=[1, 10, 100])
-parser.add_argument('--querytype', '-t', help = 'Query type for which to build the model', default = querytype, type = str, choices=['RANGE', 'JOIN'])
-parser.add_argument('--attribute', '-a', help = 'Query constraint attribute', default = queryattr, type = str, choices=['o_orderkey','o_totalprice','l_orderkey', 'l_extendedprice'])
-parser.add_argument('--folds',     '-f', help = 'Number of folds to use in cross-validation', default = num_folds, type = utils.check_nonneg)
-parser.add_argument('--verbose',   '-v', help = 'Turn logging on; specify multiple times for more verbosity', action = 'count')
+parser.add_argument('--querytype',    '-t', help = 'Query type for which to build the model', default = querytype, type = str, choices=['RANGE', 'JOIN'])
+parser.add_argument('--inattr',       '-i', help = 'Query constraint attribute', default = queryattr, type = str, choices=['o_orderkey','o_totalprice','l_orderkey', 'l_extendedprice'])
+parser.add_argument('--outvar',       '-o', help = 'Dependent variable to predict', default = outvar , type = str, choices=['Avg_Execution_Time', 'Result_Set_Returned'])
+parser.add_argument('--folds',        '-f', help = 'Number of folds to use in cross-validation', default = num_folds, type = utils.check_nonneg)
+parser.add_argument('--scoring',      '-s', help = 'Scoring function to use in GridSearchCV', default = scoring, type = str, choices=['neg_median_absolute_error','neg_mean_absolute_error','neg_mean_squared_error', 'explained_variance', 'r2_score'])
+parser.add_argument('--verbose',      '-v', help = 'Turn logging on; specify multiple times for more verbosity', action = 'count')
 
 args = parser.parse_args()
 if args.verbose == None:
     args.verbose = 0
 
-run_train_test(args.scalefactor, args.distribution, args.querytype, args.attribute, args.folds, args.verbose)
+X, X_test, Y, Y_test = get_data_splits(args.scalefactor, args.distribution, args.querytype, args.inattr, args.outvar)
+model, is_scaled = find_best_estimator(X, Y, args.folds, args.scoring, args.verbose)
+predictions, scores = run_test(model, is_scaled, X_test, Y_test)
+
+print("Regresion scores on validation set:")
+print("    Median absolute error: " + str(scores['mdae']))
+print("    Mean absolute error  : " + str(scores['mae']))
+print("    Mean squared error   : " + str(scores['mse']))
+print("    Explained variance   : " + str(scores['ev']))
+print("    R^2 score            : " + str(scores['r2']))
+
+compare = pd.DataFrame({'Prediction': predictions, 'Validation Data' : Y_test})
+print(compare)
