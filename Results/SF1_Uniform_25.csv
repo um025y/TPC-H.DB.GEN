@@ -1,4 +1,4 @@
-Model_Num,Table_Name,Column_Name,Query_Type,Range_Min,Range_Max,Result Set Returned,Min_Execution_Time,Max_Execution_Time,Med_Execution_Time,Std_Deviation_Exe_Time,Avg_Execution_Time
+Model_Num,Table_Name,Column_Name,Query_Type,Range_Min,Range_Max,Result_Set_Returned,Min_Execution_Time,Max_Execution_Time,Med_Execution_Time,Std_Deviation_Exe_Time,Avg_Execution_Time
 Model_RANGE_o_orderkey,order_table,o_orderkey,RANGE,2478591.0,3978591.0,375000,2.3097329139709473,115.38143491744995,3.3935623168945312,44.04620136051821,34.292230224609376
 Model_RANGE_o_orderkey,order_table,o_orderkey,RANGE,3186665.0,4686665.0,375000,2.2542920112609863,2.518479108810425,2.37510085105896,0.08743874790590962,2.3793589591979982
 Model_RANGE_o_orderkey,order_table,o_orderkey,RANGE,1309072.0,2809072.0,375000,2.199641227722168,2.268220901489258,2.236968994140625,0.02909683825499034,2.2340372085571287
