@@ -191,7 +191,7 @@ parser.add_argument('--querytype',    '-t', help = 'Query type for which to buil
 parser.add_argument('--inattr',       '-i', help = 'Query constraint attribute', default = queryattr, type = str, choices=['o_orderkey','o_totalprice','l_orderkey', 'l_extendedprice'])
 parser.add_argument('--outvar',       '-o', help = 'Dependent variable to predict', default = outvar , type = str, choices=['Avg_Execution_Time', 'Result_Set_Returned'])
 parser.add_argument('--folds',        '-f', help = 'Number of folds to use in cross-validation', default = num_folds, type = utils.check_nonneg)
-parser.add_argument('--scoring',      '-s', help = 'Scoring function to use in GridSearchCV', default = scoring, type = str, choices=['neg_median_absolute_error','neg_mean_absolute_error','neg_mean_squared_error', 'explained_variance', 'r2_score'])
+parser.add_argument('--scoring',      '-s', help = 'Scoring function to use in GridSearchCV', default = scoring, type = str, choices=['neg_median_absolute_error','neg_mean_absolute_error','neg_mean_squared_error', 'explained_variance', 'r2'])
 parser.add_argument('--verbose',      '-v', help = 'Turn logging on; specify multiple times for more verbosity', action = 'count')
 
 args = parser.parse_args()
