@@ -1,4 +1,5 @@
 import argparse
+from math import inf
 from multiprocessing import cpu_count
 import numpy as np
 import pandas as pd
@@ -141,7 +142,7 @@ def find_best_estimator(X, Y, num_folds, scoring, verbose):
     num_jobs = cpu_count()
     X_scaled = StandardScaler().fit(X).transform(X)
 
-    best_score = -1000
+    best_score = -inf
     best_model = None
     best_pipeline = None
     print("Grid-searching " + str(len(pipelines)) + " models...")
